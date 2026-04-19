@@ -7,7 +7,8 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ====================== НАСТРОЙКИ ======================
-BOT_TOKEN = "8692984616:AAgm5gUUmJUnhx-304Eq1zBiTDX8ZG89psM"   # ←←← ТВОЙ ТОКЕН ЗДЕСЬ
+BOT_TOKEN = "8723733452:AAGxeFvcCma8K70OZT1CXY9ZQJ8z412M_JA"  
+
 AD_TEXT = "🍌 BananoX — выращивай бананы!"
 
 bot = Bot(token=BOT_TOKEN)
@@ -67,7 +68,7 @@ async def cmd_start(message: types.Message):
     user = message.from_user
     await get_or_create_user(user.id, user.username or f"User{user.id}")
 
-    text = "🌿 **Добро пожаловать в BananoX!**\n\nВыращивай бананы и прокачивай ферму!"
+    text = "🌿 **Добро пожаловать в BananoX!**"
 
     if message.chat.type == "private":
         kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -112,7 +113,6 @@ async def cmd_shop(message: types.Message):
     text = """**🏪 Магазин ферм**
 
 1 м² = 1 Banano Coin
-Каждый м² даёт +5 бананов в час
 
 /buy 10 — купить 10 м²
 /buy 50 — купить 50 м²"""
@@ -123,8 +123,6 @@ async def cmd_shop(message: types.Message):
 async def cmd_buy(message: types.Message):
     try:
         amount = int(message.text.split()[1])
-        if amount <= 0:
-            raise ValueError
     except:
         await message.answer("❌ Пример: `/buy 10`", parse_mode="MarkdownV2")
         return
@@ -133,14 +131,14 @@ async def cmd_buy(message: types.Message):
     cost = amount
 
     if row[3] < cost:
-        await message.answer(f"❌ Недостаточно Banano Coins!\nНужно: {cost}\nУ тебя: {row[3]}", parse_mode="MarkdownV2")
+        await message.answer(f"❌ Недостаточно коинов! Нужно {cost}, у тебя {row[3]}", parse_mode="MarkdownV2")
         return
 
     new_m2 = row[4] + amount
     new_coins = row[3] - cost
     await update_user(message.from_user.id, farm_m2=new_m2, banana_coins=new_coins)
 
-    await message.answer(format_msg(f"**✅ Куплено {amount} м²**\nТеперь ферма: {new_m2} м²\nКоинов осталось: {new_coins}"), parse_mode="MarkdownV2")
+    await message.answer(format_msg(f"**✅ Куплено {amount} м²**\nТеперь ферма: {new_m2} м²"), parse_mode="MarkdownV2")
 
 
 @dp.message(Command("profile"))
@@ -150,9 +148,9 @@ async def cmd_profile(message: types.Message):
     text = f"""**👤 Профиль**
 
 🍌 Бананы: {row[2]}
-🪙 Banano Coins: {row[3]}
+🪙 Coins: {row[3]}
 🌱 Ферма: {row[4]} м²
-📈 Доход в час: {income} бананов"""
+📈 Доход/час: {income}"""
     await message.answer(format_msg(text), parse_mode="MarkdownV2")
 
 
@@ -168,21 +166,7 @@ async def cmd_top_bananas(message: types.Message):
     await message.answer(format_msg("\n".join(lines)), parse_mode="MarkdownV2")
 
 
-@dp.message(Command("help"))
-async def cmd_help(message: types.Message):
-    text = """🌿 **Команды BananoX:**
-
-/collect — собрать бананы
-/sell — продать все бананы
-/shop — магазин
-/buy 10 — купить м² фермы
-/profile — профиль
-/top_bananas — топ по бананам
-/help — помощь"""
-    await message.answer(format_msg(text), parse_mode="MarkdownV2")
-
-
-# ====================== ЗАПУСК (Polling) ======================
+# ====================== ЗАПУСК ======================
 async def main():
     await init_db()
     logging.info("BananoX запущен!")
